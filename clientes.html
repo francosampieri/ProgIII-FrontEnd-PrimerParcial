@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes — El Tintero</title>
+</head>
+<body>
+  <header>
+    <h1>El Tintero</h1>
+    <nav>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="libros.html">Libros</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="ventas.html">Ventas</a>
+      <a href="historial.html">Historial</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Clientes</h2>
+      <form id="clientes-form" action="#" method="post">
+        <p>
+          <label for="clientes-nombre">Nombre completo</label>
+          <input id="clientes-nombre" name="nombre" type="text">
+        </p>
+        <p>
+          <label for="clientes-email">Email</label>
+          <input id="clientes-email" name="email" type="email">
+        </p>
+        <p>
+          <button type="submit">Registrar cliente</button>
+        </p>
+      </form>
+      <div id="clientes-vacio" aria-live="polite" hidden></div>
+      <div id="clientes-mensaje-ok" aria-live="polite" hidden></div>
+      <div id="clientes-mensaje-error" aria-live="polite" hidden></div>
+      <table id="clientes-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Nombre completo</th>
+            <th scope="col">Email</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ana Pérez</td>
+            <td>ana.perez@example.com</td>
+          </tr>
+          <tr>
+            <td>Bruno Díaz</td>
+            <td>bruno.diaz@example.com</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>
+    <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
+  </footer>
+</body>
+</html>

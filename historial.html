@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Historial — El Tintero</title>
+</head>
+<body>
+  <header>
+    <h1>El Tintero</h1>
+    <nav>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="libros.html">Libros</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="ventas.html">Ventas</a>
+      <a href="historial.html">Historial</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Historial</h2>
+      <div id="historial-vacio" aria-live="polite" hidden></div>
+      <table id="historial-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Identificador</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Total</th>
+            <th scope="col">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-venta-id="1">
+            <td>1</td>
+            <td>2026-10-01</td>
+            <td>Ana Pérez</td>
+            <td>$18.500</td>
+            <td><a href="#historial-detalle-1">Ver detalle</a></td>
+          </tr>
+          <tr data-venta-id="2">
+            <td>2</td>
+            <td>2026-10-02</td>
+            <td>Bruno Díaz</td>
+            <td>$37.300</td>
+            <td><a href="#historial-detalle-2">Ver detalle</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+    <section id="historial-detalle-1">
+      <h3>Detalle 1</h3>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Libro</th>
+            <th scope="col">Cantidad</th>
+            <th scope="col">Precio unitario</th>
+            <th scope="col">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cien años de soledad</td>
+            <td>1</td>
+            <td>$18.500</td>
+            <td>$18.500</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><a href="#historial-tabla">Volver al listado</a></p>
+    </section>
+    <section id="historial-detalle-2">
+      <h3>Detalle 2</h3>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Libro</th>
+            <th scope="col">Cantidad</th>
+            <th scope="col">Precio unitario</th>
+            <th scope="col">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Antología de la literatura fantástica</td>
+            <td>1</td>
+            <td>$21.400</td>
+            <td>$21.400</td>
+          </tr>
+          <tr>
+            <td>El Aleph</td>
+            <td>1</td>
+            <td>$15.900</td>
+            <td>$15.900</td>
+          </tr>
+        </tbody>
+      </table>
+      <p><a href="#historial-tabla">Volver al listado</a></p>
+    </section>
+  </main>
+  <footer>
+    <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ventas — El Tintero</title>
+</head>
+<body>
+  <header>
+    <h1>El Tintero</h1>
+    <nav>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="libros.html">Libros</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="ventas.html">Ventas</a>
+      <a href="historial.html">Historial</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Ventas</h2>
+      <p>
+        <label for="ventas-cliente">Cliente</label>
+        <select id="ventas-cliente" name="cliente">
+          <option value="">Seleccionar cliente</option>
+          <option value="1">Ana Pérez</option>
+          <option value="2">Bruno Díaz</option>
+        </select>
+      </p>
+      <p>
+        <label for="ventas-libro">Libro</label>
+        <select id="ventas-libro" name="libro">
+          <option value="">Seleccionar libro</option>
+          <option value="1">Cien años de soledad</option>
+          <option value="2">Antología de la literatura fantástica</option>
+          <option value="3">El Aleph</option>
+        </select>
+      </p>
+      <p>
+        <label for="ventas-cantidad">Cantidad</label>
+        <input id="ventas-cantidad" name="cantidad" type="number" min="1" value="1">
+      </p>
+      <p>
+        <button type="button">Agregar renglón</button>
+      </p>
+      <table id="venta-renglones">
+        <thead>
+          <tr>
+            <th scope="col">Libro</th>
+            <th scope="col">Cantidad</th>
+            <th scope="col">Precio unitario</th>
+            <th scope="col">Subtotal</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-libro-id="1" data-cantidad="1">
+            <td>Cien años de soledad</td>
+            <td>1</td>
+            <td>$18.500</td>
+            <td>$18.500</td>
+            <td>
+              <button type="button">Cambiar cantidad</button>
+              <button type="button">Quitar renglón</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="ventas-resumen">
+        <p>Total: <span id="ventas-total">$18.500</span></p>
+        <p>
+          <button type="button">Confirmar venta</button>
+        </p>
+      </div>
+      <div id="ventas-mensaje-ok" aria-live="polite" hidden></div>
+      <div id="ventas-mensaje-error" aria-live="polite" hidden></div>
+    </section>
+  </main>
+  <footer>
+    <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
+  </footer>
+</body>
+</html>

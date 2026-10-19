@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Libros — El Tintero</title>
+</head>
+<body>
+  <header>
+    <h1>El Tintero</h1>
+    <nav>
+      <a href="catalogo.html">Catálogo</a>
+      <a href="libros.html">Libros</a>
+      <a href="clientes.html">Clientes</a>
+      <a href="ventas.html">Ventas</a>
+      <a href="historial.html">Historial</a>
+    </nav>
+  </header>
+  <main>
+    <section>
+      <h2>Libros</h2>
+      <form id="libros-form" action="#" method="post">
+        <p>
+          <label for="libros-titulo">Título</label>
+          <input id="libros-titulo" name="titulo" type="text">
+        </p>
+        <p>
+          <label for="libros-isbn">ISBN</label>
+          <input id="libros-isbn" name="isbn" type="text">
+        </p>
+        <p>
+          <label for="libros-precio">Precio</label>
+          <input id="libros-precio" name="precio" type="number" min="0" step="0.01">
+        </p>
+        <p>
+          <label for="libros-editorial">Editorial</label>
+          <select id="libros-editorial" name="editorial">
+            <option value="">Seleccionar editorial</option>
+            <option value="sudamericana">Sudamericana</option>
+            <option value="losada">Losada</option>
+            <option value="emece">Emecé</option>
+          </select>
+        </p>
+        <p>
+          <label for="libros-genero">Género</label>
+          <select id="libros-genero" name="genero">
+            <option value="">Seleccionar género</option>
+            <option value="novela">Novela</option>
+            <option value="cuento">Cuento</option>
+            <option value="antologia">Antología</option>
+            <option value="sin-clasificar">Sin clasificar</option>
+          </select>
+        </p>
+        <fieldset>
+          <legend>Autores</legend>
+          <p>
+            <input id="libros-autor-1" name="autores" type="checkbox" value="1" checked>
+            <label for="libros-autor-1">Gabriel García Márquez</label>
+          </p>
+          <p>
+            <input id="libros-autor-2" name="autores" type="checkbox" value="2">
+            <label for="libros-autor-2">Julio Cortázar</label>
+          </p>
+          <p>
+            <input id="libros-autor-3" name="autores" type="checkbox" value="3">
+            <label for="libros-autor-3">Jorge Luis Borges</label>
+          </p>
+        </fieldset>
+        <p>
+          <button type="submit">Registrar libro</button>
+        </p>
+      </form>
+      <div id="libros-vacio" aria-live="polite" hidden></div>
+      <div id="libros-mensaje-ok" aria-live="polite" hidden></div>
+      <div id="libros-mensaje-error" aria-live="polite" hidden></div>
+      <table id="libros-tabla">
+        <thead>
+          <tr>
+            <th scope="col">Título</th>
+            <th scope="col">ISBN</th>
+            <th scope="col">Editorial</th>
+            <th scope="col">Género</th>
+            <th scope="col">Autores</th>
+            <th scope="col">Precio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Cien años de soledad</td>
+            <td>978-84-376-0494-7</td>
+            <td>Sudamericana</td>
+            <td>Novela</td>
+            <td>Gabriel García Márquez</td>
+            <td>$18.500</td>
+          </tr>
+          <tr>
+            <td>Antología de la literatura fantástica</td>
+            <td>978-84-206-3313-2</td>
+            <td>Losada</td>
+            <td>Antología</td>
+            <td>Jorge Luis Borges, Adolfo Bioy Casares, Silvina Ocampo</td>
+            <td>$21.400</td>
+          </tr>
+          <tr>
+            <td>El Aleph</td>
+            <td>978-84-206-3314-9</td>
+            <td>Emecé</td>
+            <td>Sin clasificar</td>
+            <td>Jorge Luis Borges</td>
+            <td>$15.900</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <footer>
+    <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
+  </footer>
+</body>
+</html>
