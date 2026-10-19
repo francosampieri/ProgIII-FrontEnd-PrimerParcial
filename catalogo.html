@@ -4,11 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Catálogo — El Tintero</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header>
+  <header class="contenedor">
     <h1>El Tintero</h1>
-    <nav>
+    <nav class="nav-principal">
       <a href="catalogo.html">Catálogo</a>
       <a href="libros.html">Libros</a>
       <a href="clientes.html">Clientes</a>
@@ -16,23 +17,23 @@
       <a href="historial.html">Historial</a>
     </nav>
   </header>
-  <main>
+  <main class="contenedor">
     <section>
       <h2>Catálogo</h2>
       <form id="catalogo-buscador" action="#" method="get">
-        <p>
+        <p class="form-group">
           <label for="catalogo-titulo">Título</label>
           <input id="catalogo-titulo" name="titulo" type="search">
         </p>
-        <p>
-          <button type="submit">Buscar por título</button>
-          <button type="reset">Limpiar búsqueda</button>
+        <p class="form-acciones">
+          <button type="submit" class="btn">Buscar por título</button>
+          <button type="reset" class="btn btn--secundario">Limpiar búsqueda</button>
         </p>
       </form>
-      <div id="catalogo-vacio" aria-live="polite" hidden></div>
-      <div id="catalogo-sin-resultados" aria-live="polite" hidden></div>
-      <div id="catalogo-lista">
-        <article data-libro-id="1">
+      <div id="catalogo-vacio" class="mensaje mensaje-vacio" aria-live="polite" hidden></div>
+      <div id="catalogo-sin-resultados" class="mensaje mensaje-info" aria-live="polite" hidden></div>
+      <div id="catalogo-lista" class="grilla-tarjetas">
+        <article class="card libro-tarjeta" data-libro-id="1">
           <h3>Cien años de soledad</h3>
           <p>ISBN: 978-84-376-0494-7</p>
           <p>Editorial: Sudamericana</p>
@@ -43,7 +44,7 @@
           </ul>
           <p>Precio: $18.500</p>
         </article>
-        <article data-libro-id="2">
+        <article class="card libro-tarjeta" data-libro-id="2">
           <h3>Antología de la literatura fantástica</h3>
           <p>ISBN: 978-84-206-3313-2</p>
           <p>Editorial: Losada</p>
@@ -56,7 +57,7 @@
           </ul>
           <p>Precio: $21.400</p>
         </article>
-        <article data-libro-id="3">
+        <article class="card libro-tarjeta" data-libro-id="3">
           <h3>El Aleph</h3>
           <p>ISBN: 978-84-206-3314-9</p>
           <p>Editorial: Emecé</p>
@@ -70,7 +71,7 @@
       </div>
     </section>
   </main>
-  <footer>
+  <footer class="contenedor">
     <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
   </footer>
 </body>
