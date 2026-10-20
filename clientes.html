@@ -20,7 +20,7 @@
   <main class="contenedor">
     <section>
       <h2>Clientes</h2>
-      <form id="clientes-form" action="#" method="post">
+      <form id="clientes-form" action="#" method="post" novalidate>
         <p class="form-group">
           <label for="clientes-nombre">Nombre completo</label>
           <input id="clientes-nombre" name="nombre" type="text">
@@ -44,16 +44,7 @@
               <th scope="col">Email</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Ana Pérez</td>
-              <td>ana.perez@example.com</td>
-            </tr>
-            <tr>
-              <td>Bruno Díaz</td>
-              <td>bruno.diaz@example.com</td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
     </section>
@@ -61,5 +52,7 @@
   <footer class="contenedor">
     <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
   </footer>
+  <script defer src="js/data.js"></script>
+  <script defer src="js/altas.js"></script>
 </body>
 </html>

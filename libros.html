@@ -20,7 +20,7 @@
   <main class="contenedor">
     <section>
       <h2>Libros</h2>
-      <form id="libros-form" action="#" method="post">
+      <form id="libros-form" action="#" method="post" novalidate>
         <p class="form-group">
           <label for="libros-titulo">Título</label>
           <input id="libros-titulo" name="titulo" type="text">
@@ -35,37 +35,14 @@
         </p>
         <p class="form-group">
           <label for="libros-editorial">Editorial</label>
-          <select id="libros-editorial" name="editorial">
-            <option value="">Seleccionar editorial</option>
-            <option value="sudamericana">Sudamericana</option>
-            <option value="losada">Losada</option>
-            <option value="emece">Emecé</option>
-          </select>
+          <select id="libros-editorial" name="editorial"></select>
         </p>
         <p class="form-group">
           <label for="libros-genero">Género</label>
-          <select id="libros-genero" name="genero">
-            <option value="">Seleccionar género</option>
-            <option value="novela">Novela</option>
-            <option value="cuento">Cuento</option>
-            <option value="antologia">Antología</option>
-            <option value="sin-clasificar">Sin clasificar</option>
-          </select>
+          <select id="libros-genero" name="genero"></select>
         </p>
         <fieldset>
           <legend>Autores</legend>
-          <p>
-            <input id="libros-autor-1" name="autores" type="checkbox" value="1" checked>
-            <label for="libros-autor-1">Gabriel García Márquez</label>
-          </p>
-          <p>
-            <input id="libros-autor-2" name="autores" type="checkbox" value="2">
-            <label for="libros-autor-2">Julio Cortázar</label>
-          </p>
-          <p>
-            <input id="libros-autor-3" name="autores" type="checkbox" value="3">
-            <label for="libros-autor-3">Jorge Luis Borges</label>
-          </p>
         </fieldset>
         <p class="form-acciones">
           <button type="submit" class="btn">Registrar libro</button>
@@ -86,32 +63,7 @@
               <th scope="col">Precio</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
-              <td>Cien años de soledad</td>
-              <td>978-84-376-0494-7</td>
-              <td>Sudamericana</td>
-              <td>Novela</td>
-              <td>Gabriel García Márquez</td>
-              <td>$18.500</td>
-            </tr>
-            <tr>
-              <td>Antología de la literatura fantástica</td>
-              <td>978-84-206-3313-2</td>
-              <td>Losada</td>
-              <td>Antología</td>
-              <td>Jorge Luis Borges, Adolfo Bioy Casares, Silvina Ocampo</td>
-              <td>$21.400</td>
-            </tr>
-            <tr>
-              <td>El Aleph</td>
-              <td>978-84-206-3314-9</td>
-              <td>Emecé</td>
-              <td>Sin clasificar</td>
-              <td>Jorge Luis Borges</td>
-              <td>$15.900</td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
       </div>
     </section>
@@ -119,5 +71,7 @@
   <footer class="contenedor">
     <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
   </footer>
+  <script defer src="js/data.js"></script>
+  <script defer src="js/altas.js"></script>
 </body>
 </html>
