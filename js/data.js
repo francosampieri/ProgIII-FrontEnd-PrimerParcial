@@ -4,7 +4,10 @@
   window.ElTintero = window.ElTintero || {};
 
   /*
-   * Modelo de datos de ejemplo, en memoria y sin persistencia.
+   * Modelo de datos de ejemplo. Al cargar, ElTintero.persistencia hidrata
+   * libros, clientes y ventas desde localStorage (claves eltintero.*.v1);
+   * si una clave no existe o es inválida, se siembran sus ejemplos. Cada
+   * alta o venta confirmada persiste la colección afectada.
    * Los ISBN de los libros 4-6 son placeholders no verificados
    * (bloque 978-84-0000-...) y los precios son valores de ejemplo.
    */
@@ -116,6 +119,20 @@
       }
     ]
   };
+
+  const CLAVES = {
+    libros: "eltintero.libros.v1",
+    clientes: "eltintero.clientes.v1",
+    ventas: "eltintero.ventas.v1"
+  };
+
+  const NOMBRES_COLECCIONES = ["libros", "clientes", "ventas"];
+
+  const EJEMPLOS = copiaProfunda({
+    libros: ElTintero.datos.libros,
+    clientes: ElTintero.datos.clientes,
+    ventas: ElTintero.datos.ventas
+  });
 
   function obtenerLibros() {
     return ElTintero.datos.libros;
@@ -467,6 +484,7 @@
       autoresIds: autoresIds
     };
     ElTintero.datos.libros.push(libro);
+    ElTintero.persistencia.guardarColeccion("libros");
     return { exito: true, libro: libro };
   }
 
@@ -498,6 +516,7 @@
       email: email
     };
     ElTintero.datos.clientes.push(cliente);
+    ElTintero.persistencia.guardarColeccion("clientes");
     return { exito: true, cliente: cliente };
   }
 
@@ -598,7 +617,405 @@
       total: total
     };
     ElTintero.datos.ventas.push(venta);
+    ElTintero.persistencia.guardarColeccion("ventas");
     return { exito: true, venta: venta };
+  }
+
+  function copiaProfunda(valor) {
+    return JSON.parse(JSON.stringify(valor));
+  }
+
+  function obtenerAlmacen() {
+    try {
+      if (typeof window === "undefined" || !window.localStorage) {
+        return null;
+      }
+      return window.localStorage;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  function claveDe(nombre) {
+    if (!Object.prototype.hasOwnProperty.call(CLAVES, nombre)) {
+      return null;
+    }
+    return CLAVES[nombre];
+  }
+
+  function esObjeto(valor) {
+    return typeof valor === "object" && valor !== null && !Array.isArray(valor);
+  }
+
+  function esTextoNoVacio(valor) {
+    return typeof valor === "string" && valor.trim() !== "";
+  }
+
+  function esNumeroFinito(valor) {
+    return typeof valor === "number" && Number.isFinite(valor);
+  }
+
+  function esEntero(valor) {
+    return typeof valor === "number" && Number.isInteger(valor);
+  }
+
+  function esFechaISO(valor) {
+    if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+      return false;
+    }
+    const partes = valor.split("-").map(Number);
+    const fecha = new Date(Date.UTC(partes[0], partes[1] - 1, partes[2]));
+    return fecha.getUTCFullYear() === partes[0]
+      && fecha.getUTCMonth() === partes[1] - 1
+      && fecha.getUTCDate() === partes[2];
+  }
+
+  function validarLibro(libro) {
+    if (!esObjeto(libro)) {
+      return false;
+    }
+    if (!esEntero(libro.id)) {
+      return false;
+    }
+    if (!esTextoNoVacio(libro.titulo)) {
+      return false;
+    }
+    if (!esTextoNoVacio(libro.isbn)) {
+      return false;
+    }
+    if (!esNumeroFinito(libro.precio)) {
+      return false;
+    }
+    if (!esEntero(libro.editorialId)) {
+      return false;
+    }
+    if (libro.generoId !== null && !esEntero(libro.generoId)) {
+      return false;
+    }
+    if (!Array.isArray(libro.autoresIds) || libro.autoresIds.length === 0) {
+      return false;
+    }
+    return libro.autoresIds.every(esEntero);
+  }
+
+  function validarCliente(cliente) {
+    return esObjeto(cliente)
+      && esEntero(cliente.id)
+      && esTextoNoVacio(cliente.nombre)
+      && esTextoNoVacio(cliente.email);
+  }
+
+  function validarRenglon(renglon) {
+    return esObjeto(renglon)
+      && esEntero(renglon.libroId)
+      && esTextoNoVacio(renglon.tituloLibro)
+      && esEntero(renglon.cantidad) && renglon.cantidad > 0
+      && esNumeroFinito(renglon.precioUnitario) && renglon.precioUnitario >= 0
+      && esNumeroFinito(renglon.subtotal) && renglon.subtotal >= 0;
+  }
+
+  function validarVenta(venta) {
+    if (!esObjeto(venta)) {
+      return false;
+    }
+    if (!esEntero(venta.id)) {
+      return false;
+    }
+    if (!esFechaISO(venta.fecha)) {
+      return false;
+    }
+    if (!esEntero(venta.clienteId)) {
+      return false;
+    }
+    if (!esTextoNoVacio(venta.clienteNombre)) {
+      return false;
+    }
+    if (!Array.isArray(venta.renglones) || venta.renglones.length === 0) {
+      return false;
+    }
+    if (!esNumeroFinito(venta.total)) {
+      return false;
+    }
+    return venta.renglones.every(validarRenglon);
+  }
+
+  function validarColeccion(nombre, valor) {
+    if (!Array.isArray(valor)) {
+      return false;
+    }
+    if (nombre === "libros") {
+      return valor.every(validarLibro);
+    }
+    if (nombre === "clientes") {
+      return valor.every(validarCliente);
+    }
+    if (nombre === "ventas") {
+      return valor.every(validarVenta);
+    }
+    return false;
+  }
+
+  function disponible() {
+    const almacen = obtenerAlmacen();
+    if (almacen === null) {
+      return false;
+    }
+    const clavePrueba = "eltintero.prueba.v1";
+    try {
+      almacen.setItem(clavePrueba, "1");
+      const escribio = almacen.getItem(clavePrueba) === "1";
+      almacen.removeItem(clavePrueba);
+      return escribio;
+    } catch (error) {
+      try {
+        almacen.removeItem(clavePrueba);
+      } catch (errorLimpieza) {
+        return false;
+      }
+      return false;
+    }
+  }
+
+  function leerColeccion(nombre) {
+    const clave = claveDe(nombre);
+    if (clave === null) {
+      return { ok: false, motivo: "colección desconocida" };
+    }
+    const almacen = obtenerAlmacen();
+    if (almacen === null) {
+      return { ok: false, motivo: "almacenamiento no disponible" };
+    }
+    let crudo;
+    try {
+      crudo = almacen.getItem(clave);
+    } catch (error) {
+      return { ok: false, motivo: "no se pudo leer la clave" };
+    }
+    if (crudo === null) {
+      return { ok: false, motivo: "clave ausente" };
+    }
+    let datos;
+    try {
+      datos = JSON.parse(crudo);
+    } catch (error) {
+      return { ok: false, motivo: "JSON inválido" };
+    }
+    if (!validarColeccion(nombre, datos)) {
+      return { ok: false, motivo: "esquema inválido" };
+    }
+    return { ok: true, datos: datos };
+  }
+
+  function escribirColeccion(nombre) {
+    const clave = claveDe(nombre);
+    if (clave === null) {
+      return { ok: false, error: "colección desconocida" };
+    }
+    const almacen = obtenerAlmacen();
+    if (almacen === null) {
+      const error = "almacenamiento no disponible";
+      console.error("[ElTintero.persistencia] No se pudo escribir " + clave + ": " + error + ".");
+      return { ok: false, error: error };
+    }
+    try {
+      almacen.setItem(clave, JSON.stringify(ElTintero.datos[nombre]));
+      return { ok: true };
+    } catch (error) {
+      const detalle = error && error.message ? error.message : "error desconocido";
+      console.error("[ElTintero.persistencia] No se pudo escribir " + clave + ": " + detalle + ".");
+      return { ok: false, error: detalle };
+    }
+  }
+
+  function guardarColeccion(nombre) {
+    if (claveDe(nombre) === null) {
+      return { ok: false, error: "colección desconocida" };
+    }
+    const resultado = escribirColeccion(nombre);
+    if (resultado.ok) {
+      verificarIntegridad();
+    }
+    return resultado;
+  }
+
+  function guardarTodo() {
+    const errores = [];
+    NOMBRES_COLECCIONES.forEach(function (nombre) {
+      const resultado = escribirColeccion(nombre);
+      if (!resultado.ok) {
+        errores.push(resultado.error);
+      }
+    });
+    verificarIntegridad().forEach(function (mensaje) {
+      errores.push(mensaje);
+    });
+    return { ok: errores.length === 0, errores: errores };
+  }
+
+  function sembrarColeccion(nombre) {
+    if (claveDe(nombre) === null) {
+      return { ok: false, error: "colección desconocida" };
+    }
+    ElTintero.datos[nombre] = copiaProfunda(EJEMPLOS[nombre]);
+    return escribirColeccion(nombre);
+  }
+
+  function sembrar() {
+    NOMBRES_COLECCIONES.forEach(function (nombre) {
+      sembrarColeccion(nombre);
+    });
+  }
+
+  function detectarColeccionesInconsistentes() {
+    const implicadas = [];
+
+    function agregar(nombre) {
+      if (implicadas.indexOf(nombre) === -1) {
+        implicadas.push(nombre);
+      }
+    }
+
+    NOMBRES_COLECCIONES.forEach(function (nombre) {
+      if (tieneIdsDuplicados(ElTintero.datos[nombre])) {
+        agregar(nombre);
+      }
+    });
+
+    ElTintero.datos.libros.forEach(function (libro) {
+      if (buscarEditorialPorId(libro.editorialId) === undefined) {
+        agregar("libros");
+      }
+      if (libro.generoId !== null && buscarGeneroPorId(libro.generoId) === undefined) {
+        agregar("libros");
+      }
+      if (!Array.isArray(libro.autoresIds) || libro.autoresIds.length === 0) {
+        agregar("libros");
+        return;
+      }
+      libro.autoresIds.forEach(function (autorId) {
+        if (buscarAutorPorId(autorId) === undefined) {
+          agregar("libros");
+        }
+      });
+    });
+
+    ElTintero.datos.ventas.forEach(function (venta) {
+      if (buscarClientePorId(venta.clienteId) === undefined) {
+        agregar("clientes");
+        agregar("ventas");
+      }
+      if (!Array.isArray(venta.renglones) || venta.renglones.length === 0) {
+        agregar("ventas");
+        return;
+      }
+      venta.renglones.forEach(function (renglon) {
+        if (buscarLibroPorId(renglon.libroId) === undefined) {
+          agregar("libros");
+          agregar("ventas");
+        }
+      });
+    });
+
+    return implicadas;
+  }
+
+  function restaurarCoherencia() {
+    let errores = verificarIntegridad();
+    if (errores.length === 0) {
+      return;
+    }
+
+    const implicadas = detectarColeccionesInconsistentes();
+    implicadas.forEach(function (nombre) {
+      sembrarColeccion(nombre);
+    });
+
+    if (implicadas.length > 0) {
+      errores = verificarIntegridad();
+      if (errores.length === 0) {
+        console.warn("[ElTintero.persistencia] Se restauraron a los ejemplos las colecciones incoherentes: " + implicadas.join(", ") + ".");
+        return;
+      }
+    }
+
+    sembrar();
+    const erroresFinales = verificarIntegridad();
+    if (erroresFinales.length === 0) {
+      console.warn("[ElTintero.persistencia] Se restauraron las tres colecciones a los ejemplos por incoherencia referencial.");
+    } else {
+      console.error("[ElTintero.persistencia] Persisten " + erroresFinales.length + " errores de integridad tras restaurar los ejemplos.");
+    }
+  }
+
+  function iniciar() {
+    const almacen = obtenerAlmacen();
+    if (almacen === null) {
+      console.error("[ElTintero.persistencia] localStorage no está disponible; se usan los ejemplos en memoria.");
+      return;
+    }
+
+    NOMBRES_COLECCIONES.forEach(function (nombre) {
+      let crudo = null;
+      try {
+        crudo = almacen.getItem(claveDe(nombre));
+      } catch (error) {
+        console.error("[ElTintero.persistencia] No se pudo leer " + claveDe(nombre) + "; se usan los ejemplos de " + nombre + ".");
+        ElTintero.datos[nombre] = copiaProfunda(EJEMPLOS[nombre]);
+        return;
+      }
+
+      if (crudo === null) {
+        sembrarColeccion(nombre);
+        return;
+      }
+
+      const resultado = leerColeccion(nombre);
+      if (resultado.ok) {
+        ElTintero.datos[nombre] = resultado.datos;
+        return;
+      }
+
+      console.error("[ElTintero.persistencia] La colección " + nombre + " es inválida (" + resultado.motivo + "); se restauran sus ejemplos.");
+      ElTintero.datos[nombre] = copiaProfunda(EJEMPLOS[nombre]);
+      escribirColeccion(nombre);
+    });
+
+    restaurarCoherencia();
+  }
+
+  function restablecer() {
+    const almacen = obtenerAlmacen();
+    const errores = [];
+
+    if (almacen === null) {
+      errores.push("almacenamiento no disponible");
+      sembrar();
+      verificarIntegridad().forEach(function (mensaje) {
+        errores.push(mensaje);
+      });
+      return { ok: false, errores: errores };
+    }
+
+    NOMBRES_COLECCIONES.forEach(function (nombre) {
+      try {
+        almacen.removeItem(claveDe(nombre));
+      } catch (error) {
+        errores.push("no se pudo borrar " + claveDe(nombre));
+      }
+    });
+
+    NOMBRES_COLECCIONES.forEach(function (nombre) {
+      const resultado = sembrarColeccion(nombre);
+      if (!resultado.ok) {
+        errores.push(resultado.error);
+      }
+    });
+
+    verificarIntegridad().forEach(function (mensaje) {
+      errores.push(mensaje);
+    });
+
+    return { ok: errores.length === 0, errores: errores };
   }
 
   ElTintero.consultas = {
@@ -628,5 +1045,16 @@
     registrarVenta: registrarVenta
   };
 
+  ElTintero.persistencia = {
+    disponible: disponible,
+    leerColeccion: leerColeccion,
+    guardarColeccion: guardarColeccion,
+    guardarTodo: guardarTodo,
+    sembrar: sembrar,
+    iniciar: iniciar,
+    restablecer: restablecer
+  };
+
+  ElTintero.persistencia.iniciar();
   verificarIntegridad();
 }());

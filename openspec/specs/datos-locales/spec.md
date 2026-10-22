@@ -8,36 +8,6 @@ Ejercicios 4 a 6 sin persistencia ni altas.
 
 ## Requirements
 
-### Requirement: Modelo en memoria con identificadores estables (R-01)
-
-El sistema SHALL exponer seis colecciones locales en memoria —`libros`,
-`editoriales`, `generos`, `autores`, `clientes` y `ventas`— construidas con
-arrays y objetos literales. Cada registro MUST tener un `id` numérico entero
-único dentro de su colección, estable durante toda la sesión de la página, y
-MUST estar marcado en la documentación del código como dato de ejemplo. El
-modelo MUST existir antes de ejecutarse cualquier lógica de catálogo, ventas o
-historial y MUST NOT persistirse en el navegador.
-
-#### Scenario: Colecciones disponibles con ids únicos
-
-- **WHEN** se abre `catalogo.html` o `ventas.html` con doble clic y se
-  inspecciona el modelo en la consola
-- **THEN** existen las seis colecciones y, en cada una, todos los `id` son
-  numéricos, únicos y estables
-
-#### Scenario: Sin persistencia
-
-- **WHEN** se recarga la página después de modificar una colección en consola
-- **THEN** el modelo vuelve a los datos de ejemplo iniciales, porque no se usa
-  `localStorage`, `sessionStorage` ni IndexedDB
-
-#### Scenario: Datos marcados como ejemplo
-
-- **WHEN** se revisa la definición de los datos
-- **THEN** los registros están identificados como datos de ejemplo (y los ISBN
-  de los libros 4–6 como placeholders no verificados), no como datos reales de
-  la librería
-
 ### Requirement: Conjunto inicial mínimo de datos de ejemplo (R-01)
 
 El modelo SHALL incluir 6 libros, 3 editoriales, 3 géneros, 5 autores y 3
@@ -115,62 +85,6 @@ referenciales sin interrumpir el renderizado del catálogo.
 
 - **WHEN** se inspecciona la colección `generos`
 - **THEN** ninguno de sus registros se llama «Sin clasificar»
-
-### Requirement: Interfaz pública reutilizable para los Ejercicios 4 a 6 (R-09)
-
-El sistema SHALL exponer un único punto de acceso global documentado que ofrezca
-las seis colecciones y helpers de consulta, de render y de **mutación de altas y
-ventas**, de modo que los Ejercicios 4 a 6 puedan poblar selectores, listados,
-formularios e historial sin modificar la estructura de datos ni los `id` del
-HTML. La interfaz MUST incluir al menos: acceso a libros y clientes, búsqueda de
-editorial, género, autores, libros, clientes y ventas por id, formateo de precio
-y de importes con dos decimales, verificación de integridad, filtro por título,
-renderizado del catálogo, normalización de ISBN y email, consultas de unicidad,
-generación de identificadores y registro de un libro, de un cliente o de una
-venta. Las consultas de normalización, unicidad, búsqueda por id y formateo MUST
-exponerse bajo `ElTintero.consultas`; la generación de identificadores y las
-mutaciones MUST exponerse bajo `ElTintero.registros` y centralizarse en
-`js/data.js`, y MUST ser el único camino por el que la capa de vista agrega
-registros; la vista de los formularios de alta MUST exponerse bajo
-`ElTintero.altas` en el archivo `js/altas.js`, y las vistas de venta e historial
-bajo sus propios namespaces en archivos externos de `js/`, sin modificar los
-arrays directamente. La interfaz MUST NOT implementar edición, eliminación ni
-persistencia en el navegador.
-
-#### Scenario: Consulta de entidades relacionadas
-
-- **WHEN** se solicita la editorial, el género o los autores de un libro por sus
-  ids
-- **THEN** la interfaz devuelve los registros correspondientes, o `undefined`
-  para un id inexistente, sin lanzar una excepción
-
-#### Scenario: Consulta de libro o cliente por id
-
-- **WHEN** se solicita un libro o un cliente por `id`
-- **THEN** la interfaz devuelve el registro correspondiente o `undefined` si no
-  existe, sin lanzar una excepción
-
-#### Scenario: Reutilización sin tocar el HTML
-
-- **WHEN** un ejercicio futuro necesita la lista de clientes, de libros o de
-  ventas, o registrar un alta o una venta
-- **THEN** puede obtenerla o ejecutarla desde la interfaz pública sin agregar ni
-  cambiar elementos del HTML del catálogo ni de las vistas
-
-#### Scenario: Mutaciones centralizadas
-
-- **WHEN** la vista Libros, Clientes o Ventas necesita agregar un registro
-- **THEN** invoca `ElTintero.registros.registrarLibro`,
-  `ElTintero.registros.registrarCliente` o
-  `ElTintero.registros.registrarVenta` y no ejecuta `push` ni asigna ids sobre
-  `ElTintero.datos` directamente
-
-#### Scenario: Sin altas ni persistencia en esta entrega
-
-- **WHEN** se revisa la interfaz pública
-- **THEN** no expone funciones de edición ni de eliminación de libros, clientes
-  o ventas, ni almacenamiento en el navegador; los registros creados solo viven
-  en memoria durante la sesión
 
 ### Requirement: Normalización de ISBN y email para comparación (R-03, R-04)
 
@@ -325,14 +239,16 @@ con `{ id, nombre, email }`, con `id` único generado por el sistema, sin campo
 de apellido y con `nombre` y `email` recortados tal como se ingresaron (decisión
 aprobada 2026-10-20). La operación MUST devolver un resultado explícito de éxito
 con el cliente creado o de fracaso con la lista de errores por campo, MUST NOT
-lanzar excepciones por datos inválidos y MUST NOT producir altas parciales.
+lanzar excepciones por datos inválidos y MUST NOT producir altas parciales. Tras
+un alta válida, el cliente MUST quedar persistido en la colección
+correspondiente de `localStorage`.
 
 #### Scenario: Alta válida de cliente
 
 - **WHEN** se registra un cliente con nombre completo y un email nuevo con
   formato válido
-- **THEN** la operación devuelve éxito, la colección crece en uno y el cliente
-  creado tiene id único, nombre y email
+- **THEN** la operación devuelve éxito, la colección crece en uno, el cliente
+  creado tiene id único, nombre y email, y queda persistido
 
 #### Scenario: Email duplicado en otro formato
 
@@ -364,8 +280,9 @@ lanzar excepciones por datos inválidos y MUST NOT producir altas parciales.
 
 #### Scenario: Integridad de clientes posterior
 
-- **WHEN** se ejecutan varias altas válidas de clientes
-- **THEN** todos los ids son únicos y el modelo sigue sin persistencia
+- **WHEN** se ejecutan varias altas válidas de clientes y se recarga la página
+- **THEN** todos los ids son únicos, se conservan los clientes persistidos y no
+  se duplica ningún ejemplo
 
 ### Requirement: Ventas de ejemplo en el modelo (R-05)
 
@@ -571,23 +488,130 @@ modificarse para las ventas.
 - **WHEN** se formatea el precio `18500` con `formatearPrecio`
 - **THEN** devuelve `$18.500`, sin decimales
 
-### Requirement: Preparación de la persistencia futura (R-09)
+### Requirement: Modelo local persistente con identificadores estables (R-01)
 
-El contrato de ventas SHALL documentar que el Ejercicio 6 persistirá y
-recuperará las ventas leyendo y escribiendo `ElTintero.datos.ventas` y volviendo
-a invocar las funciones públicas de render del historial, sin cambiar los `id`
-del HTML ni las firmas descritas. En esta entrega MUST NOT implementarse
-persistencia ni simularse con almacenamiento del navegador.
+El sistema SHALL exponer seis colecciones locales —`libros`, `editoriales`,
+`generos`, `autores`, `clientes` y `ventas`— construidas con arrays y objetos
+literales. Cada registro MUST tener un `id` numérico entero único dentro de su
+colección, estable entre recargas, y los registros sembrados desde los ejemplos
+MUST estar marcados en la documentación del código como datos de ejemplo. El
+modelo MUST existir antes de ejecutarse cualquier lógica de catálogo, ventas o
+historial. Las colecciones `libros`, `clientes` y `ventas` MUST hidratarse desde
+`localStorage` dentro de `js/data.js` antes de que rendericen las vistas, y MUST
+persistirse después de cada mutación válida. Las colecciones `editoriales`,
+`generos` y `autores` MUST permanecer fijas en el código y MUST NOT persistirse.
 
-#### Scenario: Ganchos documentados
+#### Scenario: Colecciones disponibles con ids únicos
 
-- **WHEN** se revisa la documentación del contrato en `js/data.js` o en los
-  delta specs
-- **THEN** se identifican `ElTintero.datos.ventas`,
-  `ElTintero.registros.registrarVenta`, `ElTintero.consultas.buscarVentaPorId` y
-  las funciones de render del historial como puntos de extensión del Ej. 6
+- **WHEN** se abre `catalogo.html` o `ventas.html` con doble clic y se
+  inspecciona el modelo en la consola
+- **THEN** existen las seis colecciones y, en cada una, todos los `id` son
+  numéricos, únicos y estables
 
-#### Scenario: Sin persistencia adelantada
+#### Scenario: Hidratación previa al render
 
-- **WHEN** se busca almacenamiento en el código de ventas
-- **THEN** no hay `localStorage`, `sessionStorage`, IndexedDB ni cookies
+- **WHEN** se abre una vista con datos previamente guardados
+- **THEN** `ElTintero.datos.libros`, `ElTintero.datos.clientes` y
+  `ElTintero.datos.ventas` ya contienen los registros recuperados antes de que el
+  script de la vista genere su contenido
+
+#### Scenario: Datos marcados como ejemplo
+
+- **WHEN** se revisa la definición de los datos
+- **THEN** los registros sembrados están identificados como datos de ejemplo (y
+  los ISBN de los libros 4–6 como placeholders no verificados), no como datos
+  reales de la librería
+
+#### Scenario: Persistencia entre recargas
+
+- **WHEN** se recarga la página después de una alta o una venta válida
+- **THEN** el modelo conserva los registros persistidos en lugar de volver a los
+  ejemplos iniciales
+
+### Requirement: Interfaz pública con persistencia centralizada (R-09)
+
+El sistema SHALL exponer un único punto de acceso global documentado que ofrezca
+las seis colecciones y helpers de consulta, de render, de **mutación de altas y
+ventas** y de **persistencia**, de modo que los Ejercicios 4 a 6 puedan poblar
+selectores, listados, formularios e historial sin modificar la estructura de
+datos ni los `id` del HTML. La interfaz MUST incluir al menos: acceso a libros y
+clientes, búsqueda de editorial, género, autores, libros, clientes y ventas por
+id, formateo de precio y de importes con dos decimales, verificación de
+integridad, filtro por título, renderizado del catálogo, normalización de ISBN y
+email, consultas de unicidad, generación de identificadores y registro de un
+libro, de un cliente o de una venta. Las consultas de normalización, unicidad,
+búsqueda por id y formateo MUST exponerse bajo `ElTintero.consultas`; la
+generación de identificadores y las mutaciones MUST exponerse bajo
+`ElTintero.registros`; la carga, siembra, guardado y restablecimiento MUST
+exponerse bajo `ElTintero.persistencia`; todas MUST centralizarse en
+`js/data.js`, y las mutaciones MUST ser el único camino por el que la capa de
+vista agrega registros. La vista de los formularios de alta MUST exponerse bajo
+`ElTintero.altas` en el archivo `js/altas.js`, y las vistas de venta e historial
+bajo sus propios namespaces en archivos externos de `js/`, sin modificar los
+arrays directamente ni acceder a `localStorage`. La interfaz MUST NOT implementar
+edición ni eliminación de registros, ni administración del almacenamiento desde
+la interfaz visible.
+
+#### Scenario: Consulta de entidades relacionadas
+
+- **WHEN** se solicita la editorial, el género o los autores de un libro por sus
+  ids
+- **THEN** la interfaz devuelve los registros correspondientes, o `undefined`
+  para un id inexistente, sin lanzar una excepción
+
+#### Scenario: Consulta de libro o cliente por id
+
+- **WHEN** se solicita un libro o un cliente por `id`
+- **THEN** la interfaz devuelve el registro correspondiente o `undefined` si no
+  existe, sin lanzar una excepción
+
+#### Scenario: Reutilización sin tocar el HTML
+
+- **WHEN** un ejercicio futuro necesita la lista de clientes, de libros o de
+  ventas, o registrar un alta o una venta
+- **THEN** puede obtenerla o ejecutarla desde la interfaz pública sin agregar ni
+  cambiar elementos del HTML del catálogo ni de las vistas
+
+#### Scenario: Mutaciones centralizadas
+
+- **WHEN** la vista Libros, Clientes o Ventas necesita agregar un registro
+- **THEN** invoca `ElTintero.registros.registrarLibro`,
+  `ElTintero.registros.registrarCliente` o
+  `ElTintero.registros.registrarVenta` y no ejecuta `push` ni asigna ids sobre
+  `ElTintero.datos` directamente
+
+#### Scenario: Persistencia centralizada
+
+- **WHEN** una vista necesita leer o escribir datos persistidos
+- **THEN** lo hace a través de `ElTintero.persistencia` y no contiene claves de
+  `localStorage` ni llamadas directas al almacenamiento
+
+#### Scenario: Sin edición ni eliminación
+
+- **WHEN** se revisa la interfaz pública
+- **THEN** no expone funciones de edición ni de eliminación de libros, clientes
+  o ventas, ni controles visibles de administración del almacenamiento
+
+### Requirement: Persistencia de las altas de libros y clientes (R-02)
+
+El sistema SHALL persistir `ElTintero.datos.libros` y `ElTintero.datos.clientes`
+inmediatamente después de un alta válida, de modo que las altas sobrevivan a la
+recarga y a la navegación entre `catalogo.html`, `libros.html`, `clientes.html` y
+`ventas.html`. Las altas MUST seguir siendo rechazadas sin mutación ni escritura
+cuando no cumplen las validaciones existentes.
+
+#### Scenario: Libro persistido y visible en el catálogo
+
+- **WHEN** se registra un libro válido y se navega a `catalogo.html`
+- **THEN** el libro aparece en el catálogo y sigue presente después de recargar
+
+#### Scenario: Cliente persistido y visible en ventas
+
+- **WHEN** se registra un cliente válido y se abre `ventas.html`
+- **THEN** el cliente aparece en el selector y sigue presente después de recargar
+
+#### Scenario: Alta rechazada sin escritura
+
+- **WHEN** se intenta registrar un libro con ISBN duplicado
+- **THEN** el alta se rechaza, la colección no cambia y el contenido persistido
+  conserva exactamente los mismos registros
