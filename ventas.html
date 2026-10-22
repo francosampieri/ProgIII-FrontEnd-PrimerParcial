@@ -24,17 +24,12 @@
         <label for="ventas-cliente">Cliente</label>
         <select id="ventas-cliente" name="cliente">
           <option value="">Seleccionar cliente</option>
-          <option value="1">Ana Pérez</option>
-          <option value="2">Bruno Díaz</option>
         </select>
       </p>
       <p class="form-group">
         <label for="ventas-libro">Libro</label>
         <select id="ventas-libro" name="libro">
           <option value="">Seleccionar libro</option>
-          <option value="1">Cien años de soledad</option>
-          <option value="2">Antología de la literatura fantástica</option>
-          <option value="3">El Aleph</option>
         </select>
       </p>
       <p class="form-group">
@@ -42,7 +37,7 @@
         <input id="ventas-cantidad" name="cantidad" type="number" min="1" value="1">
       </p>
       <p class="form-acciones">
-        <button type="button" class="btn">Agregar renglón</button>
+        <button id="ventas-agregar" type="button" class="btn">Agregar renglón</button>
       </p>
       <div class="tabla-contenedor">
         <table id="venta-renglones" class="tabla">
@@ -55,24 +50,14 @@
               <th scope="col">Acciones</th>
             </tr>
           </thead>
-          <tbody>
-            <tr data-libro-id="1" data-cantidad="1">
-              <td>Cien años de soledad</td>
-              <td>1</td>
-              <td>$18.500</td>
-              <td>$18.500</td>
-              <td>
-                <button type="button" class="btn btn--secundario">Cambiar cantidad</button>
-                <button type="button" class="btn btn--peligro">Quitar renglón</button>
-              </td>
-            </tr>
-          </tbody>
+          <tbody></tbody>
         </table>
+        <p id="ventas-renglones-vacio" class="mensaje mensaje-vacio" hidden>Todavía no agregaste renglones.</p>
       </div>
       <div id="ventas-resumen" class="venta-resumen">
-        <p>Total: <span id="ventas-total">$18.500</span></p>
+        <p>Total: <span id="ventas-total">$0,00</span></p>
         <p>
-          <button type="button" class="btn">Confirmar venta</button>
+          <button id="ventas-confirmar" type="button" class="btn">Confirmar venta</button>
         </p>
       </div>
       <div id="ventas-mensaje-ok" class="mensaje mensaje-exito" aria-live="polite" hidden></div>
@@ -82,5 +67,7 @@
   <footer class="contenedor">
     <p>El Tintero — Datos de ejemplo para el Primer Parcial de ProgIII.</p>
   </footer>
+  <script defer src="js/data.js"></script>
+  <script defer src="js/ventas.js"></script>
 </body>
 </html>

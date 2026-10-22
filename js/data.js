@@ -86,6 +86,34 @@
       { id: 1, nombre: "Ana Pérez", email: "ana.perez@example.com" },
       { id: 2, nombre: "Bruno Díaz", email: "bruno.diaz@example.com" },
       { id: 3, nombre: "Carla Gómez", email: "carla.gomez@example.com" }
+    ],
+    /*
+     * Ventas de ejemplo ficticias, no provienen de ventas reales.
+     * Las fechas son ficticias y los renglones copian el precio de ejemplo
+     * del catálogo en el momento de la confirmación.
+     */
+    ventas: [
+      {
+        id: 1,
+        fecha: "2026-10-01",
+        clienteId: 1,
+        clienteNombre: "Ana Pérez",
+        renglones: [
+          { libroId: 1, tituloLibro: "Cien años de soledad", cantidad: 1, precioUnitario: 18500, subtotal: 18500 }
+        ],
+        total: 18500
+      },
+      {
+        id: 2,
+        fecha: "2026-10-02",
+        clienteId: 2,
+        clienteNombre: "Bruno Díaz",
+        renglones: [
+          { libroId: 2, tituloLibro: "Antología de la literatura fantástica", cantidad: 1, precioUnitario: 21400, subtotal: 21400 },
+          { libroId: 3, tituloLibro: "El Aleph", cantidad: 1, precioUnitario: 15900, subtotal: 15900 }
+        ],
+        total: 37300
+      }
     ]
   };
 
@@ -131,6 +159,12 @@
     });
   }
 
+  function buscarVentaPorId(id) {
+    return ElTintero.datos.ventas.find(function (venta) {
+      return venta.id === id;
+    });
+  }
+
   function buscarAutorPorId(id) {
     return ElTintero.datos.autores.find(function (autor) {
       return autor.id === id;
@@ -144,6 +178,26 @@
 
   function formatearPrecio(precio) {
     return "$" + formateadorPrecio.format(precio);
+  }
+
+  const formateadorImporte = new Intl.NumberFormat("es-AR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  function formatearImporte(valor) {
+    return "$" + formateadorImporte.format(valor);
+  }
+
+  function redondear2(valor) {
+    return Math.round(valor * 100) / 100;
+  }
+
+  function fechaLocalISO() {
+    const ahora = new Date();
+    const mes = String(ahora.getMonth() + 1).padStart(2, "0");
+    const dia = String(ahora.getDate()).padStart(2, "0");
+    return ahora.getFullYear() + "-" + mes + "-" + dia;
   }
 
   function recortarTexto(valor) {
@@ -200,7 +254,7 @@
       console.error(mensaje);
     }
 
-    ["editoriales", "generos", "autores", "libros", "clientes"].forEach(function (nombreColeccion) {
+    ["editoriales", "generos", "autores", "libros", "clientes", "ventas"].forEach(function (nombreColeccion) {
       if (tieneIdsDuplicados(ElTintero.datos[nombreColeccion])) {
         reportar("Integridad: hay ids duplicados en " + nombreColeccion + ".");
       }
@@ -233,6 +287,48 @@
       }
     });
 
+    ElTintero.datos.ventas.forEach(function (venta) {
+      if (buscarClientePorId(venta.clienteId) === undefined) {
+        reportar("Integridad: la venta " + venta.id + " referencia un cliente inexistente (" + venta.clienteId + ").");
+      }
+
+      if (!Array.isArray(venta.renglones) || venta.renglones.length === 0) {
+        reportar("Integridad: la venta " + venta.id + " no tiene renglones.");
+        return;
+      }
+
+      let sumaSubtotales = 0;
+      venta.renglones.forEach(function (renglon) {
+        if (buscarLibroPorId(renglon.libroId) === undefined) {
+          reportar("Integridad: la venta " + venta.id + " referencia un libro inexistente (" + renglon.libroId + ").");
+        }
+
+        const cantidadValida = Number.isInteger(renglon.cantidad) && renglon.cantidad > 0;
+        if (!cantidadValida) {
+          reportar("Integridad: la venta " + venta.id + " tiene una cantidad inválida (" + renglon.cantidad + ").");
+        }
+
+        const precioValido = typeof renglon.precioUnitario === "number"
+          && Number.isFinite(renglon.precioUnitario)
+          && renglon.precioUnitario >= 0;
+        if (!precioValido) {
+          reportar("Integridad: la venta " + venta.id + " tiene un precio unitario inválido (" + renglon.precioUnitario + ").");
+        }
+
+        if (cantidadValida && precioValido && renglon.subtotal !== redondear2(renglon.cantidad * renglon.precioUnitario)) {
+          reportar("Integridad: la venta " + venta.id + " tiene un subtotal incoherente para el libro " + renglon.libroId + ".");
+        }
+
+        if (typeof renglon.subtotal === "number" && Number.isFinite(renglon.subtotal)) {
+          sumaSubtotales += renglon.subtotal;
+        }
+      });
+
+      if (venta.total !== redondear2(sumaSubtotales)) {
+        reportar("Integridad: la venta " + venta.id + " tiene un total incoherente (" + venta.total + ").");
+      }
+    });
+
     return errores;
   }
 
@@ -255,6 +351,18 @@
     CN_04: "Ya existe un cliente con ese email."
   };
 
+  const MENSAJES_VENTA = {
+    VN_01: "Seleccioná un cliente.",
+    VN_02: "El cliente seleccionado no existe.",
+    VN_03: "Agregá al menos un renglón.",
+    VN_04: "Seleccioná un libro.",
+    VN_05: "El libro seleccionado no existe.",
+    VN_06: "Ingresá una cantidad válida.",
+    VN_07: "La cantidad debe ser un número entero.",
+    VN_08: "La cantidad debe ser mayor que cero.",
+    VN_09: "Ese libro ya está en la venta."
+  };
+
   function generarIdSiguiente(coleccion) {
     const maximo = coleccion.reduce(function (idMaximo, registro) {
       return registro.id > idMaximo ? registro.id : idMaximo;
@@ -268,6 +376,10 @@
 
   function generarIdCliente() {
     return generarIdSiguiente(ElTintero.datos.clientes);
+  }
+
+  function generarIdVenta() {
+    return generarIdSiguiente(ElTintero.datos.ventas);
   }
 
   function registrarLibro(datosLibro) {
@@ -389,6 +501,106 @@
     return { exito: true, cliente: cliente };
   }
 
+  function registrarVenta(datosVenta) {
+    const datos = datosVenta || {};
+    const errores = [];
+
+    const textoCliente = recortarTexto(datos.clienteId);
+    let clienteId = null;
+    let cliente = undefined;
+    if (textoCliente === "") {
+      errores.push({ campo: "clienteId", mensaje: MENSAJES_VENTA.VN_01 });
+    } else {
+      clienteId = Number(textoCliente);
+      if (!Number.isFinite(clienteId)) {
+        errores.push({ campo: "clienteId", mensaje: MENSAJES_VENTA.VN_01 });
+      } else {
+        cliente = buscarClientePorId(clienteId);
+        if (cliente === undefined) {
+          errores.push({ campo: "clienteId", mensaje: MENSAJES_VENTA.VN_02 });
+        }
+      }
+    }
+
+    const renglonesCrudos = datos.renglones;
+    if (!Array.isArray(renglonesCrudos) || renglonesCrudos.length === 0) {
+      errores.push({ campo: "renglones", mensaje: MENSAJES_VENTA.VN_03 });
+    } else {
+      const librosVistos = [];
+      renglonesCrudos.forEach(function (renglonCrudo) {
+        const renglon = renglonCrudo || {};
+
+        const textoLibro = recortarTexto(renglon.libroId);
+        let libroId = null;
+        if (textoLibro === "") {
+          errores.push({ campo: "libroId", mensaje: MENSAJES_VENTA.VN_04 });
+        } else {
+          libroId = Number(textoLibro);
+          if (!Number.isFinite(libroId) || buscarLibroPorId(libroId) === undefined) {
+            errores.push({ campo: "libroId", mensaje: MENSAJES_VENTA.VN_05 });
+            libroId = null;
+          }
+        }
+
+        const textoCantidad = recortarTexto(renglon.cantidad);
+        if (textoCantidad === "") {
+          errores.push({ campo: "cantidad", mensaje: MENSAJES_VENTA.VN_06 });
+        } else {
+          const cantidad = Number(textoCantidad);
+          if (!Number.isFinite(cantidad)) {
+            errores.push({ campo: "cantidad", mensaje: MENSAJES_VENTA.VN_06 });
+          } else if (!Number.isInteger(cantidad)) {
+            errores.push({ campo: "cantidad", mensaje: MENSAJES_VENTA.VN_07 });
+          } else if (cantidad <= 0) {
+            errores.push({ campo: "cantidad", mensaje: MENSAJES_VENTA.VN_08 });
+          }
+        }
+
+        if (libroId !== null) {
+          if (librosVistos.indexOf(libroId) !== -1) {
+            errores.push({ campo: "libroId", mensaje: MENSAJES_VENTA.VN_09 });
+          } else {
+            librosVistos.push(libroId);
+          }
+        }
+      });
+    }
+
+    if (errores.length > 0) {
+      return { exito: false, errores: errores };
+    }
+
+    const renglones = renglonesCrudos.map(function (renglonCrudo) {
+      const libroId = Number(recortarTexto(renglonCrudo.libroId));
+      const cantidad = Number(recortarTexto(renglonCrudo.cantidad));
+      const libroActual = buscarLibroPorId(libroId);
+      return {
+        libroId: libroId,
+        tituloLibro: libroActual.titulo,
+        cantidad: cantidad,
+        precioUnitario: libroActual.precio,
+        subtotal: redondear2(cantidad * libroActual.precio)
+      };
+    });
+
+    let total = 0;
+    renglones.forEach(function (renglon) {
+      total += renglon.subtotal;
+    });
+    total = redondear2(total);
+
+    const venta = {
+      id: generarIdVenta(),
+      fecha: fechaLocalISO(),
+      clienteId: clienteId,
+      clienteNombre: cliente.nombre,
+      renglones: renglones,
+      total: total
+    };
+    ElTintero.datos.ventas.push(venta);
+    return { exito: true, venta: venta };
+  }
+
   ElTintero.consultas = {
     obtenerLibros: obtenerLibros,
     obtenerClientes: obtenerClientes,
@@ -397,19 +609,23 @@
     buscarAutoresPorIds: buscarAutoresPorIds,
     buscarLibroPorId: buscarLibroPorId,
     buscarClientePorId: buscarClientePorId,
+    buscarVentaPorId: buscarVentaPorId,
     normalizarIsbn: normalizarIsbn,
     normalizarEmail: normalizarEmail,
     existeLibroConIsbn: existeLibroConIsbn,
     existeClienteConEmail: existeClienteConEmail,
     formatearPrecio: formatearPrecio,
+    formatearImporte: formatearImporte,
     verificarIntegridad: verificarIntegridad
   };
 
   ElTintero.registros = {
     generarIdLibro: generarIdLibro,
     generarIdCliente: generarIdCliente,
+    generarIdVenta: generarIdVenta,
     registrarLibro: registrarLibro,
-    registrarCliente: registrarCliente
+    registrarCliente: registrarCliente,
+    registrarVenta: registrarVenta
   };
 
   verificarIntegridad();
